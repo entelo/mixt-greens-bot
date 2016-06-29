@@ -70,12 +70,25 @@ Capybara.click_on("Continue")
 # ===
 
 # Sort orders without customization on top
-$orders.sort_by! {|_,_,_,_,_,details| details.nil? ? 0 : 1}
+$orders.sort_by! {|_,_,_,_,_,_,details| (details.nil? || details.empty?) ? 0 : 1}
 
 last_item_type = nil
 $orders.each_with_index do |response, i|
   puts "#{i}: #{response}"
-  (_timestamp, email, name, item_type, item, details) = response
+  (_timestamp, email, name, salad, grain_bowl, sandwich, details) = response
+
+  if salad && !salad.empty?
+    item = salad
+    item_type = 'Salad'
+  elsif grain_bowl && !grain_bowl.empty?
+    item = grain_bowl
+    item_type = 'Grain bowl'
+  elsif sandwich && !sandwich.empty?
+    item = sandwich
+    item_type = 'Sandwich'
+  else
+    raise
+  end
 
   # Change category if needed
   if last_item_type != item_type
@@ -93,7 +106,7 @@ $orders.each_with_index do |response, i|
   sleep(0.75)
 
   # No customization
-  if details.nil?
+  if details.nil? || details.empty?
     Capybara.fill_in \
       "ctl00_cph1_item_#{item_id}_ctl01_txtNote",
       with: name
